@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Data.Repositories
 {
-    internal class GenericRepository<TEntity> : IGenericRepository<TEntity, uint> 
+    internal class GenericRepository<TEntity> : IGenericRepository<TEntity, uint>
         where TEntity : class
     {
         protected DbContext Context { get; }
@@ -15,7 +15,6 @@ namespace Data.Repositories
         }
 
 
-
         public async Task<TEntity> Add(TEntity entity)
         {
             await Context.Set<TEntity>().AddAsync(entity);
@@ -24,13 +23,14 @@ namespace Data.Repositories
             {
                 return entity;
             }
+
             throw new Exception("Unable to Add Entity");
         }
 
         public async Task<bool> Delete(uint id)
         {
             var entity = await Context.Set<TEntity>().FindAsync(id);
-            if (entity is null) throw new HttpNotFoundException();
+            if (entity is null) throw new ArgumentException("Invalid Id");
             Context.Set<TEntity>().Remove(entity);
             return await Context.SaveChangesAsync() > 0;
         }
