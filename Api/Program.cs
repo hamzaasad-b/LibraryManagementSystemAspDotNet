@@ -20,7 +20,11 @@ app.UseSwaggerUI();
 
 //}
 
-app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseExceptionHandler(appError =>
+{
+    appError.Run(async context =>
+        await GenericApiErrorHandler.HandleErrorAsync(context, null, app.Environment.IsDevelopment()));
+});
 
 app.UseAuthorization();
 

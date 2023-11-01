@@ -1,31 +1,60 @@
-﻿namespace Api.Middleware
+﻿using System.Net;
+using Api.Dto.Common;
+using Domain.Exceptions;
+using Microsoft.AspNetCore.Diagnostics;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+
+namespace Api.Middleware
 {
-    public class ExceptionHandlingMiddleware
+    public static class GenericApiErrorHandler
     {
-        private readonly RequestDelegate _next;
-
-        public ExceptionHandlingMiddleware(RequestDelegate next)
+        public static async Task HandleErrorAsync(HttpContext context, ILogger? logger, bool isDev)
         {
-            _next = next;
-        }
+            var status = HttpStatusCode.InternalServerError;
+            context.Response.StatusCode = (int)status;
+            context.Response.ContentType = "application/json";
 
-        public async Task Invoke(HttpContext context)
-        {
-            try
+            var contextFeature = context.Features.Get<IExceptionHandlerFeature>();
+            if (contextFeature == null)
+                return;
+
+            var ex = contextFeature.Error;
+
+            var response = new ResponseDto { Success = false };
+
+            if (ex is ServiceException)
             {
-                await _next(context);
+                status = HttpStatusCode.BadRequest;
+                response.Message = ex.Message;
             }
-            catch (Exception ex)
+            else
             {
-                // Handle the exception and generate an appropriate response.
-                // You can log the exception, customize the error response, etc.
-                context.Response.StatusCode = 500; // Internal Server Error
-                context.Response.ContentType = "application/json";
+                response.Message = "Internal Server Error.";
 
-                await context.Response.WriteAsync($"An error occurred: {ex.Message}");
+                //response.TraceId = Sentry.SentrySdk.CaptureException(ex).ToString();
+
+                if (isDev)
+                {
+                    AddExceptions(ex);
+
+                    void AddExceptions(Exception? e)
+                    {
+                        while (true)
+                        {
+                            if (e is null) return;
+                            response.Errors?.Add($"{e.Message}\n{e.StackTrace}\n");
+                            e = e.InnerException;
+                        }
+                    }
+                }
             }
+
+            var json = JsonConvert.SerializeObject(response,
+                new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
+
+            context.Response.StatusCode = (int)status;
+            await context.Response.WriteAsync(json);
         }
-
-
     }
 }
