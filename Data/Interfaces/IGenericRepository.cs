@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using Data.Dto;
 
 namespace Data.Interfaces
 {
@@ -13,11 +14,14 @@ namespace Data.Interfaces
         Task<bool> Delete(TKey id);
         Task<TEntity> Update(TEntity entity);
         Task<IEnumerable<TEntity>> GetAll();
-        Task<TEntity> GetById(TKey id);
+        Task<IEnumerable<TEntity>> GetAll(Expression<Func<TEntity, bool>> filter);
+        Task<TEntity?> GetById(TKey id);
 
-        Task<TEntity> Find(Expression<Func<TEntity, bool>> filter);
+        Task<TEntity?> Find(Expression<Func<TEntity, bool>> filter);
 
-        Task<IEnumerable<TEntity>> GetWithPagination(Expression<Func<TEntity, bool>> filter, int pageSize = 10,
+        Task<PaginationDto<TEntity>> GetWithPagination(Expression<Func<TEntity, bool>> filter, int pageSize = 10,
+            int pageNumber = 1);
+        Task<PaginationDto<TEntity>> GetAllWithPagination(int pageSize = 10,
             int pageNumber = 1);
     }
 }

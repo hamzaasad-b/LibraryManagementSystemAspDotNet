@@ -1,4 +1,6 @@
 ﻿using System.Linq.Expressions;
+using System.Runtime.InteropServices.ComTypes;
+using Data.Dto;
 using Data.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,18 +17,42 @@ namespace Data.Repositories
         }
 
 
+        /// <summary>
+        /// It adds an entity to database
+        /// </summary>
+        /// <param name="entity">The Entity to add</param>
+        /// <returns>Added Entity to Database</returns>
+        /// <exception>Exception thrown by ef core
+        ///     <cref>DpUpdateException</cref>
+        /// </exception>
+        /// <exception>Exception thrown by ef core
+        ///     <cref>DpUpdateConcurrencyException</cref>
+        /// </exception>
+        /// <exception>Exception thrown by ef core
+        ///     <cref>OperationCancelledException</cref>
+        /// </exception>
         public async Task<TEntity> Add(TEntity entity)
         {
-            await Context.Set<TEntity>().AddAsync(entity);
-            var res = await Context.SaveChangesAsync();
-            if (res > 0)
-            {
-                return entity;
-            }
-
-            throw new Exception("Unable to Add Entity");
+            var addedEntity = await Context.Set<TEntity>().AddAsync(entity);
+            await Context.SaveChangesAsync();
+            return addedEntity.Entity;
         }
 
+
+        /// <summary>
+        /// It deletes an entity from database
+        /// </summary>
+        /// <param name="id">The Id of the entity to delete</param>
+        /// <returns>Added Entity to Database</returns>
+        /// <exception>Exception thrown by ef core
+        ///     <cref>DpUpdateException</cref>
+        /// </exception>
+        /// <exception>Exception thrown by ef core
+        ///     <cref>DpUpdateConcurrencyException</cref>
+        /// </exception>
+        /// <exception>Exception thrown by ef core
+        ///     <cref>OperationCancelledException</cref>
+        /// </exception>
         public async Task<bool> Delete(uint id)
         {
             var entity = await Context.Set<TEntity>().FindAsync(id);
@@ -35,32 +61,111 @@ namespace Data.Repositories
             return await Context.SaveChangesAsync() > 0;
         }
 
+        /// <summary>
+        /// It Updates an entity in database
+        /// </summary>
+        /// <param name="entity">The Entity to add</param>
+        /// <returns>Added Entity to Database</returns>
+        /// <exception>Exception thrown by ef core
+        ///     <cref>DpUpdateException</cref>
+        /// </exception>
+        /// <exception>Exception thrown by ef core
+        ///     <cref>DpUpdateConcurrencyException</cref>
+        /// </exception>
+        /// <exception>Exception thrown by ef core
+        ///     <cref>OperationCancelledException</cref>
+        /// </exception>
         public async Task<TEntity> Update(TEntity entity)
         {
             var updatedEntity = Context.Set<TEntity>().Update(entity);
-            var res = await Context.SaveChangesAsync();
-            throw new NotImplementedException();
+            await Context.SaveChangesAsync();
+            return updatedEntity.Entity;
         }
 
-        public Task<IEnumerable<TEntity>> GetAll()
+
+        /// <summary>
+        /// Get All records from database 
+        /// </summary>
+        /// <returns>Added Entity to Database</returns>
+        /// <exception>Exception thrown by ef core
+        ///     <cref>ArgumentNullException</cref>
+        /// </exception>
+        /// <exception>Exception thrown by ef core
+        ///     <cref>OperationCancelledException</cref>
+        /// </exception>
+        public async Task<IEnumerable<TEntity>> GetAll()
         {
-            throw new NotImplementedException();
+            return await Context.Set<TEntity>().ToListAsync();
         }
 
-        public Task<TEntity> GetById(uint id)
+
+        /// <summary>
+        /// Get All records from database 
+        /// </summary>
+        /// <param name="id">Id of the entity to find</param>
+        /// <returns>Entity Found or Null</returns>
+        public async Task<TEntity?> GetById(uint id)
         {
-            throw new NotImplementedException();
+            return await Context.Set<TEntity>().FindAsync(id);
         }
 
-        public Task<TEntity> Find(Expression<Func<TEntity, bool>> filter)
+        /// <summary>
+        /// Find a record with given conditions from database
+        /// </summary>
+        /// <param name="filter">conditions in form of query predicate</param>
+        /// <returns>Entity Found or Null</returns>
+        public async Task<TEntity?> Find(Expression<Func<TEntity, bool>> filter)
         {
-            throw new NotImplementedException();
+            return await Context.Set<TEntity>().Where(filter).FirstOrDefaultAsync();
         }
 
-        public Task<IEnumerable<TEntity>> GetWithPagination(Expression<Func<TEntity, bool>> filter, int pageSize = 10,
+        /// <summary>
+        /// Find all records with given conditions from database
+        /// </summary>
+        /// <param name="filter">conditions in form of query predicate</param>
+        /// <returns>List of records</returns>
+        public async Task<IEnumerable<TEntity>> GetAll(Expression<Func<TEntity, bool>> filter)
+        {
+            return await Context.Set<TEntity>().Where(filter).ToListAsync();
+        }
+
+
+        /// <summary>
+        /// Get Paginated Result  
+        /// </summary>
+        /// <param name="filter">Filter query predicate</param>
+        /// <param name="pageSize">page size</param>
+        /// <param name="pageNumber">page number</param>
+        /// <returns>A List of Records</returns>
+        public async Task<PaginationDto<TEntity>> GetWithPagination(Expression<Func<TEntity, bool>> filter,
+            int pageSize = 10,
             int pageNumber = 1)
         {
-            throw new NotImplementedException();
+            var query = Context.Set<TEntity>().Where(filter).AsQueryable();
+            return new PaginationDto<TEntity>(
+                await query.Skip(pageNumber - 1).Take(pageSize).ToListAsync(),
+                pageNumber,
+                pageSize,
+                await query.CountAsync()
+            );
+        }
+
+        /// <summary>
+        /// Get Paginated Result Without Filters
+        /// </summary>
+        /// <param name="pageSize">page size</param>
+        /// <param name="pageNumber">page number</param>
+        /// <returns>A List of Records</returns>
+        public async Task<PaginationDto<TEntity>> GetAllWithPagination(int pageSize = 10,
+            int pageNumber = 1)
+        {
+            var query = Context.Set<TEntity>().AsQueryable();
+            return new PaginationDto<TEntity>(
+                await query.Skip(pageNumber - 1).Take(pageSize).ToListAsync(),
+                pageNumber,
+                pageSize,
+                await query.CountAsync()
+            );
         }
     }
 }
