@@ -120,7 +120,6 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity, uint>
         return await Context.Set<TEntity>().ToListAsync();
     }
 
-
     /// <summary>
     /// Get All records from database 
     /// </summary>
@@ -146,7 +145,7 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity, uint>
     /// </summary>
     /// <param name="filter">conditions in form of query predicate</param>
     /// <returns>List of records</returns>
-    public async Task<IEnumerable<TEntity>> GetAll(Expression<Func<TEntity, bool>> filter)
+    public async Task<IEnumerable<TEntity>> GetAllWithFilters(Expression<Func<TEntity, bool>> filter)
     {
         return await Context.Set<TEntity>().Where(filter).ToListAsync();
     }

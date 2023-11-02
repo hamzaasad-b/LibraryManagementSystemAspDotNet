@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Identity;
 
 namespace Data.Entities;
 
 public class User : IdentityUser<uint>
 {
-    public string FullName { get; set; }
+    public string? FullName { get; set; }
     public IEnumerable<Book> Books { get; set; }
 }
