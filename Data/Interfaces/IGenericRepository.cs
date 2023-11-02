@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq.Expressions;
 using Data.Dto;
 
 namespace Data.Interfaces
@@ -19,8 +14,10 @@ namespace Data.Interfaces
 
         Task<TEntity?> Find(Expression<Func<TEntity, bool>> filter);
 
-        Task<PaginationDto<TEntity>> GetWithPagination(Expression<Func<TEntity, bool>> filter, int pageSize = 10,
+        Task<PaginationDto<TEntity>> GetFilteredWithPagination(Expression<Func<TEntity, bool>> filter,
+            int pageSize = 10,
             int pageNumber = 1);
+
         Task<PaginationDto<TEntity>> GetAllWithPagination(int pageSize = 10,
             int pageNumber = 1);
     }
