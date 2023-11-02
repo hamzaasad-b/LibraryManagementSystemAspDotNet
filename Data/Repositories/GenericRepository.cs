@@ -143,7 +143,7 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity, uint>
     {
         var query = Context.Set<TEntity>().Where(filter).AsQueryable();
         return new PaginationDto<TEntity>(
-            await query.Skip(pageNumber - 1).Take(pageSize).ToListAsync(),
+            await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync(),
             pageNumber,
             pageSize,
             await query.CountAsync()
@@ -161,7 +161,7 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity, uint>
     {
         var query = Context.Set<TEntity>().AsQueryable();
         return new PaginationDto<TEntity>(
-            await query.Skip(pageNumber - 1).Take(pageSize).ToListAsync(),
+            await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync(),
             pageNumber,
             pageSize,
             await query.CountAsync()
