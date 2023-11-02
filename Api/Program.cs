@@ -1,8 +1,11 @@
 using Api.Middleware;
+using Data.Context;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-
+var config = builder.Configuration;
 // Add services to the container.
+builder.Services.AddDbContext<LmsDbContext>(options => options.UseSqlite(config["ConnectionStrings:Default"]));
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
