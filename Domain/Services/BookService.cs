@@ -1,26 +1,21 @@
 using System.Linq.Expressions;
-using System.Transactions;
 using Data.Dto;
 using Data.Entities;
 using Data.Repositories;
 using Domain.Common;
-using Transaction = Data.Transactions.Transaction;
 
 namespace Domain.Services;
 
-public class BookService
+public class BookService : BaseService<Book>
 {
-    private readonly BookRepository _bookRepository;
-
-    public BookService(BookRepository bookRepository)
+    public BookService(BookRepository bookRepository) : base(bookRepository)
     {
-        _bookRepository = bookRepository;
     }
 
     public async Task<ServiceResult<IEnumerable<Book>>> GetAllBooks()
     {
         return ServiceResult<IEnumerable<Book>>.SuccessfulFactory(
-            await _bookRepository.GetAll());
+            await BaseRepository.GetAll());
     }
 
     public async Task<ServiceResult<PaginationDto<Book>>> GetBooksWithPagination(Expression<Func<Book, bool>>? filter,
@@ -30,22 +25,22 @@ public class BookService
         if (filter is null)
         {
             return ServiceResult<PaginationDto<Book>>.SuccessfulFactory(
-                await _bookRepository.GetAllWithPagination(pageSize, pageNumber));
+                await BaseRepository.GetAllWithPagination(pageSize, pageNumber));
         }
 
         return ServiceResult<PaginationDto<Book>>.SuccessfulFactory(
-            await _bookRepository.GetFilteredWithPagination(filter, pageSize, pageNumber));
+            await BaseRepository.GetFilteredWithPagination(filter, pageSize, pageNumber));
     }
 
     public async Task<ServiceResult<Book>> AddBook(Book book)
     {
         return ServiceResult<Book>.SuccessfulFactory(
-            await _bookRepository.Add(book));
+            await BaseRepository.Add(book));
     }
 
     public async Task<ServiceResult<Book?>> DeleteBook(uint bookId)
     {
-        if (await _bookRepository.Delete(bookId))
+        if (await BaseRepository.Delete(bookId))
         {
             return ServiceResult<Book?>.SuccessfulFactory();
         }
@@ -55,12 +50,12 @@ public class BookService
 
     public async Task<ServiceResult<Book?>> IssueBookToUser(uint bookId, uint userId)
     {
-        using var transaction = _bookRepository.GetTransaction();
+        using var transaction = BaseRepository.GetTransaction();
 
         try
         {
             transaction.Start(true);
-            var book = await _bookRepository.GetById(bookId);
+            var book = await BaseRepository.GetById(bookId);
             if (book is null)
             {
                 transaction.Rollback();
@@ -68,7 +63,7 @@ public class BookService
             }
 
             book.IssuedToUserId = userId;
-            await _bookRepository.Update(book);
+            await BaseRepository.Update(book);
             transaction.Commit();
             return ServiceResult<Book?>.SuccessfulFactory();
         }
@@ -81,11 +76,11 @@ public class BookService
 
     public async Task<ServiceResult<Book?>> ReturnBookFromUser(uint bookId, uint userId)
     {
-        using var transaction = _bookRepository.GetTransaction();
+        using var transaction = BaseRepository.GetTransaction();
         try
         {
             transaction.Start(true);
-            var book = await _bookRepository.GetById(bookId);
+            var book = await BaseRepository.GetById(bookId);
             if (book is null)
             {
                 transaction.Rollback();
@@ -99,7 +94,7 @@ public class BookService
             }
 
             book.IssuedToUserId = null;
-            await _bookRepository.Update(book);
+            await BaseRepository.Update(book);
             transaction.Commit();
             return ServiceResult<Book?>.SuccessfulFactory();
         }
@@ -108,5 +103,12 @@ public class BookService
             transaction.Rollback();
             throw;
         }
+    }
+
+    async Task<ServiceResult<IEnumerable<Book>>> GetAllBooksIssuedToUser(uint userId)
+    {
+        Expression<Func<Book, bool>> queryPredicate = b => b.IssuedToUserId == userId;
+        return ServiceResult<IEnumerable<Book>>.SuccessfulFactory(
+            await BaseRepository.GetAllWithFilters(queryPredicate));
     }
 }

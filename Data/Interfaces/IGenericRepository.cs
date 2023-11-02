@@ -9,7 +9,7 @@ namespace Data.Interfaces
         Task<bool> Delete(TKey id);
         Task<TEntity> Update(TEntity entity);
         Task<IEnumerable<TEntity>> GetAll();
-        Task<IEnumerable<TEntity>> GetAll(Expression<Func<TEntity, bool>> filter);
+        Task<IEnumerable<TEntity>> GetAllWithFilters(Expression<Func<TEntity, bool>> filter);
         Task<TEntity?> GetById(TKey id);
 
         Task<TEntity?> Find(Expression<Func<TEntity, bool>> filter);
