@@ -14,7 +14,6 @@ public class AuthenticationService
 
     private readonly UserManager<User> _userManager;
 
-
     private List<string> IdentityErrorsToList(IEnumerable<IdentityError> identityErrors)
     {
         var errors = new List<string>();
@@ -26,7 +25,7 @@ public class AuthenticationService
         return errors;
     }
 
-    async Task<ServiceResult<User?>> RegisterUser(string email, string? password = null)
+    public async Task<ServiceResult<User?>> RegisterUser(string email, string? password = null)
     {
         // Check if a user with the same username or email already exists
         var existingUser = await _userManager.FindByEmailAsync(email);
@@ -54,7 +53,7 @@ public class AuthenticationService
             : ServiceResult<User?>.FailedFactory(IdentityErrorsToList(result.Errors));
     }
 
-    async Task<ServiceResult<User?>> VerifyUser(string email, string password)
+    public async Task<ServiceResult<User?>> VerifyUser(string email, string password)
     {
         var user = await _userManager.FindByEmailAsync(email);
         if (user is null)
@@ -77,7 +76,7 @@ public class AuthenticationService
         return ServiceResult<User?>.FailedFactory("Invalid email or password");
     }
 
-    async Task<ServiceResult<User?>> ResetAdminPassword(string email)
+    public async Task<ServiceResult<User?>> ResetAdminPassword(string email)
     {
         var user = await _userManager.FindByEmailAsync(email);
         if (user is null)
@@ -96,7 +95,7 @@ public class AuthenticationService
         return ServiceResult<User?>.SuccessfulFactory();
     }
 
-    async Task<ServiceResult<User?>> UpdatePassword(string email, string currentPassword, string newPassword)
+    public async Task<ServiceResult<User?>> UpdatePassword(string email, string currentPassword, string newPassword)
     {
         var user = await _userManager.FindByEmailAsync(email);
         if (user is null)
@@ -110,7 +109,7 @@ public class AuthenticationService
             : ServiceResult<User?>.FailedFactory(IdentityErrorsToList(result.Errors));
     }
 
-    async Task<ServiceResult<User?>> DeleteUser(string email)
+    public async Task<ServiceResult<User?>> DeleteUser(string email)
     {
         var user = await _userManager.FindByEmailAsync(email);
 
