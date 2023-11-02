@@ -38,6 +38,28 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity, uint>
         return addedEntity.Entity;
     }
 
+    /// <summary>
+    /// It adds an entity to database
+    /// </summary>
+    /// <param name="entities">The Entity to add</param>
+    /// <returns>Added Entity to Database</returns>
+    /// <exception>Exception thrown by ef core
+    ///     <cref>DpUpdateException</cref>
+    /// </exception>
+    /// <exception>Exception thrown by ef core
+    ///     <cref>DpUpdateConcurrencyException</cref>
+    /// </exception>
+    /// <exception>Exception thrown by ef core
+    ///     <cref>OperationCancelledException</cref>
+    /// </exception>
+    public async Task<IEnumerable<TEntity>> AddMultiple(IEnumerable<TEntity> entities)
+    {
+        var entityList = entities.ToList();
+        await Context.Set<TEntity>().AddRangeAsync(entityList);
+        await Context.SaveChangesAsync();
+        return entityList;
+    }
+
 
     /// <summary>
     /// It deletes an entity from database
@@ -143,7 +165,7 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity, uint>
     {
         var query = Context.Set<TEntity>().Where(filter).AsQueryable();
         return new PaginationDto<TEntity>(
-            await query.Skip(pageNumber - 1).Take(pageSize).ToListAsync(),
+            await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync(),
             pageNumber,
             pageSize,
             await query.CountAsync()
@@ -161,7 +183,7 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity, uint>
     {
         var query = Context.Set<TEntity>().AsQueryable();
         return new PaginationDto<TEntity>(
-            await query.Skip(pageNumber - 1).Take(pageSize).ToListAsync(),
+            await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync(),
             pageNumber,
             pageSize,
             await query.CountAsync()

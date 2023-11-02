@@ -6,6 +6,7 @@ namespace Data.Interfaces
     internal interface IGenericRepository<TEntity, TKey>
     {
         Task<TEntity> Add(TEntity entity);
+        Task<IEnumerable<TEntity>> AddMultiple(IEnumerable<TEntity> entities);
         Task<bool> Delete(TKey id);
         Task<TEntity> Update(TEntity entity);
         Task<IEnumerable<TEntity>> GetAll();
