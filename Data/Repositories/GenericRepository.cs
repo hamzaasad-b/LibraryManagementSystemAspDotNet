@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using Data.Context;
 using Data.Dto;
 using Data.Interfaces;
 using Data.Transactions;
@@ -11,7 +12,7 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity, uint>
 {
     protected DbContext Context { get; }
 
-    public GenericRepository(DbContext context)
+    public GenericRepository(LmsDbContext context)
     {
         Context = context;
     }
@@ -97,9 +98,16 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity, uint>
     /// <exception>Exception thrown by ef core
     ///     <cref>OperationCancelledException</cref>
     /// </exception>
-    public async Task<TEntity> Update(TEntity entity)
+    public async Task<TEntity> Update(uint id, TEntity entity)
     {
-        var updatedEntity = Context.Set<TEntity>().Update(entity);
+        var res = await Context.Set<TEntity>().FindAsync(id);
+        if (res is null)
+        {
+            throw new ArgumentNullException();
+        }
+
+        res = entity;
+        var updatedEntity = Context.Set<TEntity>().Update(res);
         await Context.SaveChangesAsync();
         return updatedEntity.Entity;
     }
@@ -162,7 +170,7 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity, uint>
         int pageSize = 10,
         int pageNumber = 1)
     {
-        var query = Context.Set<TEntity>().Where(filter).AsQueryable();
+        var query = Context.Set<TEntity>().Where(filter);
         return new PaginationDto<TEntity>(
             await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync(),
             pageNumber,
@@ -180,7 +188,7 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity, uint>
     public async Task<PaginationDto<TEntity>> GetAllWithPagination(int pageSize = 10,
         int pageNumber = 1)
     {
-        var query = Context.Set<TEntity>().AsQueryable();
+        var query = Context.Set<TEntity>();
         return new PaginationDto<TEntity>(
             await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync(),
             pageNumber,

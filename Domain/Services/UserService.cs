@@ -5,7 +5,7 @@ namespace Domain.Services;
 
 public class UserService : BaseService<User>
 {
-    protected UserService(UserRepository repository) : base(repository)
+    public UserService(UserRepository repository) : base(repository)
     {
     }
 }

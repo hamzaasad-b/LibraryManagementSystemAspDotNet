@@ -52,5 +52,9 @@ public class ResponseDto<T> : ResponseDto
         Result = data;
     }
 
+    public ResponseDto(string? message, bool success = false) : base(message, success)
+    {
+    }
+
     public T? Result { get; set; }
 }

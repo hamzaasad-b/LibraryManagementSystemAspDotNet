@@ -1,10 +1,18 @@
 using System.Linq.Expressions;
 using Data.Entities;
+using Xunit.Abstractions;
 
 namespace UnitTest;
 
 public class BookRepositoryTests : RepositoryTests, IDisposable
 {
+    private readonly ITestOutputHelper _testOutputHelper;
+
+    public BookRepositoryTests(ITestOutputHelper testOutputHelper)
+    {
+        _testOutputHelper = testOutputHelper;
+    }
+
     [Fact]
     public async Task Add_BookToDatabase()
     {
@@ -80,7 +88,7 @@ public class BookRepositoryTests : RepositoryTests, IDisposable
         var books = new[]
         {
             new Book { Iban = "123", Title = "Book 1" },
-            new Book { Iban = "426", Title = "Book 2" },
+            new Book { Iban = "496", Title = "Book 2" },
             new Book { Iban = "789", Title = "Book 3" },
             new Book { Iban = "111", Title = "Book 4" },
             new Book { Iban = "222", Title = "Book 5" },
@@ -90,7 +98,20 @@ public class BookRepositoryTests : RepositoryTests, IDisposable
         await _dbContext.SaveChangesAsync();
 
         // Create a filter to get books with '2' in their Iban
-        Expression<Func<Book, bool>> filter = book => book.Iban.Contains("2");
+        var term = "2";
+        // Expression<Func<Book, bool>> filter = book => book.Iban.Contains("2");
+        Expression<Func<Book, bool>> titleSearch = b => b.Title.Contains(term);
+        Expression<Func<Book, bool>> ibanSearch = b => b.Iban.Contains(term);
+
+        // Create a parameter expression
+        var parameter = Expression.Parameter(typeof(Book), "b");
+
+        var titleSearchBody = Expression.Invoke(titleSearch, parameter);
+        var ibanSearchBody = Expression.Invoke(ibanSearch, parameter);
+
+        var combinedCondition = Expression.OrElse(titleSearchBody, ibanSearchBody);
+
+        var filter = Expression.Lambda<Func<Book, bool>>(combinedCondition, parameter);
 
         // Get the first page of filtered books (2 items per page)
         var result = await _repository.GetFilteredWithPagination(filter, pageSize: 2, pageNumber: 1);
@@ -101,7 +122,7 @@ public class BookRepositoryTests : RepositoryTests, IDisposable
 
         // Ensure the correct books are in the first page
         Assert.Equal("123", result.Data.First().Iban);
-        Assert.Equal("426", result.Data.Last().Iban);
+        Assert.Equal("496", result.Data.Last().Iban);
     }
 
     [Fact]
@@ -132,7 +153,7 @@ public class BookRepositoryTests : RepositoryTests, IDisposable
         Assert.Equal("456", result.Data.Last().Iban);
 
         var result2 = await _repository.GetAllWithPagination(pageSize: 2, pageNumber: 2);
-        
+
         Assert.Equal("789", result2.Data.First().Iban);
         Assert.Equal("111", result2.Data.Last().Iban);
     }
