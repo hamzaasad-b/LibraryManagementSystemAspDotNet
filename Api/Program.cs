@@ -1,4 +1,6 @@
-using System.Reflection;
+using System.Configuration;
+using System.Text;
+using Api.Jwt;
 using Api.Middleware;
 using Api.Validators;
 using Data.Context;
@@ -6,9 +8,10 @@ using Data.Entities;
 using Data.Repositories;
 using Domain.Services;
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Build.Execution;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,6 +32,8 @@ builder.Services.AddIdentity<User, IdentityRole<uint>>()
     .AddEntityFrameworkStores<LmsDbContext>()
     .AddDefaultTokenProviders();
 
+builder.Services.AddScoped<JwtManager>();
+
 // Register the UserManager
 builder.Services.AddScoped<UserManager<User>>();
 
@@ -36,9 +41,27 @@ builder.Services.AddScoped<BookService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<AuthenticationService>();
 
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = config["JwtSettings:Issuer"],
+            ValidateAudience = true,
+            ValidAudience = config["JwtSettings:Audience"],
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JwtSettings:Key"]!))
+        };
+    });
 
-builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -53,13 +76,12 @@ app.UseSwaggerUI();
 
 //}
 
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
 app.UseExceptionHandler(appError =>
 {
     appError.Run(async context =>
         await GenericApiErrorHandler.HandleErrorAsync(context, null, app.Environment.IsDevelopment()));
 });
-app.UseAuthorization();
-
-app.MapControllers();
-
 app.Run();
