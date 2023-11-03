@@ -6,7 +6,7 @@ namespace Data.Repositories;
 
 public class BookRepository : GenericRepository<Book>
 {
-    public BookRepository(DbContext context) : base(context)
+    public BookRepository(LmsDbContext context) : base(context)
     {
     }
 }

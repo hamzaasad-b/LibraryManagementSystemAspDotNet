@@ -8,7 +8,7 @@ namespace Data.Interfaces
         Task<TEntity> Add(TEntity entity);
         Task<IEnumerable<TEntity>> AddMultiple(IEnumerable<TEntity> entities);
         Task<bool> Delete(TKey id);
-        Task<TEntity> Update(TEntity entity);
+        Task<TEntity> Update(TKey id, TEntity entity);
         Task<IEnumerable<TEntity>> GetAll();
         Task<IEnumerable<TEntity>> GetAllWithFilters(Expression<Func<TEntity, bool>> filter);
         Task<TEntity?> GetById(TKey id);

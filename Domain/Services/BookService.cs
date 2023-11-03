@@ -18,6 +18,32 @@ public class BookService : BaseService<Book>
             await BaseRepository.GetAll());
     }
 
+    public async Task<ServiceResult<IEnumerable<Book>>> FindBooksByTerm(string? term = null)
+    {
+        if (term is null)
+        {
+            return ServiceResult<IEnumerable<Book>>.SuccessfulFactory(
+                await BaseRepository.GetAll());
+        }
+
+        var parameter = Expression.Parameter(typeof(Book), "b");
+
+        Expression<Func<Book, bool>> titleSearch = b => b.Title.Contains(term);
+        Expression<Func<Book, bool>> ibanSearch = b => b.Iban.Contains(term);
+
+        var titleSearchBody = Expression.Invoke(titleSearch, parameter);
+        var ibanSearchBody = Expression.Invoke(ibanSearch, parameter);
+
+        var combinedCondition = Expression.OrElse(titleSearchBody, ibanSearchBody);
+
+        var filter = Expression.Lambda<Func<Book, bool>>(combinedCondition, parameter);
+
+
+        return ServiceResult<IEnumerable<Book>>.SuccessfulFactory(
+            await BaseRepository.GetAllWithFilters(filter));
+    }
+
+
     public async Task<ServiceResult<PaginationDto<Book>>> GetBooksWithPagination(Expression<Func<Book, bool>>? filter,
         int pageNumber,
         int pageSize)
@@ -62,8 +88,14 @@ public class BookService : BaseService<Book>
                 return ServiceResult<Book?>.FailedFactory("Book not found");
             }
 
+            if (book.IssuedToUserId is not null)
+            {
+                transaction.Rollback();
+                return ServiceResult<Book?>.FailedFactory("Book Already Issued");
+            }
+
             book.IssuedToUserId = userId;
-            await BaseRepository.Update(book);
+            await BaseRepository.Update(bookId, book);
             transaction.Commit();
             return ServiceResult<Book?>.SuccessfulFactory();
         }
@@ -87,14 +119,14 @@ public class BookService : BaseService<Book>
                 return ServiceResult<Book?>.FailedFactory("Book not found");
             }
 
-            if (book!.IssuedToUserId != userId)
+            if (book.IssuedToUserId != userId)
             {
                 transaction.Rollback();
                 return ServiceResult<Book?>.FailedFactory("Book not assigned to User");
             }
 
             book.IssuedToUserId = null;
-            await BaseRepository.Update(book);
+            await BaseRepository.Update(bookId, book);
             transaction.Commit();
             return ServiceResult<Book?>.SuccessfulFactory();
         }

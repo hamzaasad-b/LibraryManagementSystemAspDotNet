@@ -12,12 +12,9 @@ namespace Api.Controllers
         private const string DefaultNotFoundMessage = "No record found.";
         private const string DefaultBadRequest = "Bad Request.";
 
-        protected BaseController(ILogger logger)
+        protected BaseController()
         {
-            Logger = logger;
         }
-
-        protected ILogger Logger { get; }
 
         protected ResponseDto Success(string? message = null)
         {
@@ -32,34 +29,57 @@ namespace Api.Controllers
         protected ResponseDto SuccessOrFail(bool success, string? message = null)
         {
             return success
-                ? Success<object>(null, message)
-                : Fail<object>(null, message);
+                ? Success(message)
+                : Fail(message);
         }
 
-        protected ResponseDto<T?> Success<T>(T? data, string? message = null)
+        protected ResponseDto<T> Success<T>(T? data = default, string? message = null)
         {
-            return new ResponseDto<T?>(data, message ?? DefaultSuccessMessage, true);
+            return data == null
+                ? new ResponseDto<T>(message ?? DefaultSuccessMessage, true)
+                : new ResponseDto<T>(data, message ?? DefaultSuccessMessage, true);
         }
 
-        protected ResponseDto<T?> Fail<T>(T? data, string? message = null)
+        protected ResponseDto<T> Fail<T>(T? data = default, string? message = null)
         {
-            return new ResponseDto<T?>(data, message ?? DefaultFailMessage, false);
+            return data == null
+                ? new ResponseDto<T>(message ?? DefaultFailMessage, false)
+                : new ResponseDto<T>(data, message ?? DefaultFailMessage, false);
         }
 
-        protected ResponseDto<T?> NoResult<T>(string? message = null, string? error = null)
+        protected ResponseDto<T> NoResult<T>(string? message = null, string? error = null)
         {
-            if (error is not null)
-                Logger.LogError(error);
-
-            return new ResponseDto<T?>(default, message ?? DefaultNotFoundMessage, true);
+            return new ResponseDto<T>(message ?? DefaultNotFoundMessage, true);
         }
 
-        protected ResponseDto<T?> WithHttpStatus<T>(HttpStatusCode statusCode, T? data, bool? success,
+        protected ResponseDto<T> WithHttpStatus<T>(HttpStatusCode statusCode, T data, bool? success,
             string? message = null,
             List<string>? errors = null) where T : class
         {
             HttpContext.Response.StatusCode = (int)statusCode;
-            return new ResponseDto<T?>(data, message ?? DefaultFailMessage, success ?? false)
+            return new ResponseDto<T>(data, message ?? DefaultFailMessage, success ?? false)
+            {
+                Errors = errors
+            };
+        }
+
+        protected ResponseDto WithHttpStatus(HttpStatusCode statusCode, bool? success = false,
+            string? message = null,
+            List<string>? errors = null)
+        {
+            HttpContext.Response.StatusCode = (int)statusCode;
+            return new ResponseDto(message ?? DefaultFailMessage, success ?? false)
+            {
+                Errors = errors
+            };
+        }
+
+        protected ResponseDto<T> WithHttpStatus<T>(HttpStatusCode statusCode, bool? success = false,
+            string? message = null,
+            List<string>? errors = null) where T : class
+        {
+            HttpContext.Response.StatusCode = (int)statusCode;
+            return new ResponseDto<T>(message ?? DefaultFailMessage, success ?? false)
             {
                 Errors = errors
             };
@@ -69,28 +89,25 @@ namespace Api.Controllers
         ///     Returns a Bad Request.
         ///     Use this when the Api input parameters are incorrect.
         /// </summary>
-        protected ResponseDto<T?> BadRequest<T>(string? message = null, List<string>? errors = null)
+        protected ResponseDto<T> BadRequest<T>(string? message = null, List<string>? errors = null)
         {
             HttpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-            return new ResponseDto<T?> { Errors = errors, Success = false, Message = message };
+            return new ResponseDto<T> { Errors = errors, Success = false, Message = message };
         }
 
-        protected ResponseDto<T?> Unauthorized<T>(string? message = null) where T : class
+        protected ResponseDto<T> Unauthorized<T>(string? message = null) where T : class
         {
             HttpContext.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-            return new ResponseDto<T?>(null, message, false);
+            return new ResponseDto<T>(null, message, false);
         }
 
-        protected ResponseDto<T?> NotFound<T>(string? message = null, string? error = null)
+        protected ResponseDto<T> NotFound<T>(string? message = null, string? error = null)
         {
-            if (error is not null)
-                Logger.LogError(error);
-
             HttpContext.Response.StatusCode = (int)HttpStatusCode.NotFound;
-            return new ResponseDto<T?>(default, message ?? DefaultNotFoundMessage, false);
+            return new ResponseDto<T>(message ?? DefaultNotFoundMessage, false);
         }
 
-        protected ResponseDto<T?> Result<T>(ServiceResult<T?> result, bool notFoundOnEmpty = false)
+        protected ResponseDto<T> Result<T>(ServiceResult<T> result, bool notFoundOnEmpty = false)
         {
             if (notFoundOnEmpty && result.Data == null)
                 return NotFound<T>();

@@ -42,6 +42,18 @@ public class BaseService<TEntity> where TEntity : class
             await BaseRepository.Add(entity));
     }
 
+    public async Task<ServiceResult<TEntity>> Update(uint id, TEntity entity)
+    {
+        var res = await BaseRepository.GetById(id);
+        if (res is null)
+        {
+            return ServiceResult<TEntity>.FailedFactory("Entity not found");
+        }
+
+        return ServiceResult<TEntity>.SuccessfulFactory(
+            await BaseRepository.Update(id, entity));
+    }
+
     public async Task<ServiceResult<TEntity?>> DeleteTEntity(uint entityId)
     {
         if (await BaseRepository.Delete(entityId))
@@ -50,5 +62,10 @@ public class BaseService<TEntity> where TEntity : class
         }
 
         return ServiceResult<TEntity?>.FailedFactory("Failed to Delete");
+    }
+
+    public async Task<ServiceResult<TEntity?>> GetById(uint entityId)
+    {
+        return ServiceResult<TEntity?>.SuccessfulFactory(await BaseRepository.GetById(entityId));
     }
 }

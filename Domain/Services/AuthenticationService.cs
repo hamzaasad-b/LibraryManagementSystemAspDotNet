@@ -25,7 +25,7 @@ public class AuthenticationService
         return errors;
     }
 
-    public async Task<ServiceResult<User?>> RegisterUser(string email, string? password = null)
+    public async Task<ServiceResult<User?>> RegisterUser(string email, string? password = null, string? fullName = null)
     {
         // Check if a user with the same username or email already exists
         var existingUser = await _userManager.FindByEmailAsync(email);
@@ -39,6 +39,7 @@ public class AuthenticationService
         {
             UserName = email,
             Email = email,
+            FullName = fullName
         };
 
 
