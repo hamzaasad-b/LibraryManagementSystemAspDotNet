@@ -2,6 +2,7 @@ using Api.Dto.Book;
 using Api.Dto.Common;
 using Data.Entities;
 using Domain.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
@@ -18,6 +19,7 @@ namespace Api.Controllers
         }
 
         // GET: api/Book
+        [Authorize]
         [HttpGet]
         public async Task<ResponseDto<IEnumerable<Book>>> Get([FromQuery] string? term)
         {

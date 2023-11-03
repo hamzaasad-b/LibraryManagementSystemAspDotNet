@@ -14,7 +14,7 @@ public class AuthenticationService
 
     private readonly UserManager<User> _userManager;
 
-    private List<string> IdentityErrorsToList(IEnumerable<IdentityError> identityErrors)
+    private static List<string> IdentityErrorsToList(IEnumerable<IdentityError> identityErrors)
     {
         var errors = new List<string>();
         foreach (IdentityError identityError in identityErrors)
