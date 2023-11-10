@@ -1,5 +1,6 @@
 using System.Configuration;
 using System.Text;
+using Api.FluentValidations;
 using Api.Jwt;
 using Api.Middleware;
 using Api.Validators;
@@ -18,7 +19,8 @@ var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 
 // Add Fluent Validation
-builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddFluentValidationAutoValidation(
+    options => { options.OverrideDefaultResultFactoryWith<ApiResponseResultFactory>(); });
 builder.Services.AddValidatorsFromAssemblyContaining<CreateUserDtoValidator>();
 
 // Add services to the container.
@@ -60,11 +62,10 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddControllers();
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
