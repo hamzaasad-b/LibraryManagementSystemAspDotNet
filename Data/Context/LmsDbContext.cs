@@ -14,7 +14,8 @@ namespace Data.Context
 {
     public class LmsDbContext : IdentityDbContext<User, IdentityRole<uint>, uint>
     {
-        private DbSet<Book>? Books { get; set; }
+        public DbSet<Book>? Books { get; set; }
+        public DbSet<User>? Users { get; set; }
 
         public LmsDbContext(DbContextOptions<LmsDbContext> options) : base(options)
         {

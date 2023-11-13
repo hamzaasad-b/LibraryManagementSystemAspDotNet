@@ -1,3 +1,4 @@
+using System.Drawing;
 using Api.Dto.Book;
 using Api.Dto.Common;
 using Common.Dto.Book;
@@ -95,6 +96,16 @@ namespace Api.Controllers
             return result.Success
                 ? Success()
                 : Fail();
+        }
+
+        [HttpPut("User/{userId}")]
+        public async Task<ResponseDto<PaginationDto<BookDto>>> BooksIssuedToUser([FromRoute] uint userId,
+            [FromQuery] int size = 50, [FromQuery] int page = 0)
+        {
+            var result =
+                await _bookService.GetBooksWithPagination(b => b.IssuedToUserId == userId, pageNumber: 0,
+                    pageSize: size);
+            return Result(result);
         }
     }
 }

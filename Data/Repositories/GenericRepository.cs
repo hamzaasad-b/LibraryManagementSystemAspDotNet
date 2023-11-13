@@ -12,7 +12,7 @@ public class GenericRepository<TEntity, TDto> : IGenericRepository<TEntity, TDto
     where TEntity : class
     where TDto : class
 {
-    protected DbContext Context { get; }
+    protected LmsDbContext Context { get; }
 
     protected IMapper Mapper { get; }
 
