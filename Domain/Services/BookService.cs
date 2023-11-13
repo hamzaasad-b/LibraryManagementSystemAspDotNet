@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using Common.Dto.Book;
 using Data.Dto;
 using Data.Entities;
 using Data.Repositories;
@@ -6,23 +7,23 @@ using Domain.Common;
 
 namespace Domain.Services;
 
-public class BookService : BaseService<Book>
+public class BookService : BaseService<Book, BookDto>
 {
     public BookService(BookRepository bookRepository) : base(bookRepository)
     {
     }
 
-    public async Task<ServiceResult<IEnumerable<Book>>> GetAllBooks()
+    public async Task<ServiceResult<IEnumerable<BookDto>>> GetAllBooks()
     {
-        return ServiceResult<IEnumerable<Book>>.SuccessfulFactory(
+        return ServiceResult<IEnumerable<BookDto>>.SuccessfulFactory(
             await BaseRepository.GetAll());
     }
 
-    public async Task<ServiceResult<IEnumerable<Book>>> FindBooksByTerm(string? term = null)
+    public async Task<ServiceResult<IEnumerable<BookDto>>> FindBooksByTerm(string? term = null)
     {
         if (term is null)
         {
-            return ServiceResult<IEnumerable<Book>>.SuccessfulFactory(
+            return ServiceResult<IEnumerable<BookDto>>.SuccessfulFactory(
                 await BaseRepository.GetAll());
         }
 
@@ -39,42 +40,43 @@ public class BookService : BaseService<Book>
         var filter = Expression.Lambda<Func<Book, bool>>(combinedCondition, parameter);
 
 
-        return ServiceResult<IEnumerable<Book>>.SuccessfulFactory(
+        return ServiceResult<IEnumerable<BookDto>>.SuccessfulFactory(
             await BaseRepository.GetAllWithFilters(filter));
     }
 
 
-    public async Task<ServiceResult<PaginationDto<Book>>> GetBooksWithPagination(Expression<Func<Book, bool>>? filter,
+    public async Task<ServiceResult<PaginationDto<BookDto>>> GetBooksWithPagination(
+        Expression<Func<Book, bool>>? filter,
         int pageNumber,
         int pageSize)
     {
         if (filter is null)
         {
-            return ServiceResult<PaginationDto<Book>>.SuccessfulFactory(
+            return ServiceResult<PaginationDto<BookDto>>.SuccessfulFactory(
                 await BaseRepository.GetAllWithPagination(pageSize, pageNumber));
         }
 
-        return ServiceResult<PaginationDto<Book>>.SuccessfulFactory(
+        return ServiceResult<PaginationDto<BookDto>>.SuccessfulFactory(
             await BaseRepository.GetFilteredWithPagination(filter, pageSize, pageNumber));
     }
 
-    public async Task<ServiceResult<Book>> AddBook(Book book)
+    public async Task<ServiceResult<BookDto>> AddBook(BookDto book)
     {
-        return ServiceResult<Book>.SuccessfulFactory(
+        return ServiceResult<BookDto>.SuccessfulFactory(
             await BaseRepository.Add(book));
     }
 
-    public async Task<ServiceResult<Book?>> DeleteBook(uint bookId)
+    public async Task<ServiceResult<BookDto?>> DeleteBook(uint bookId)
     {
         if (await BaseRepository.Delete(bookId))
         {
-            return ServiceResult<Book?>.SuccessfulFactory();
+            return ServiceResult<BookDto?>.SuccessfulFactory();
         }
 
-        return ServiceResult<Book?>.FailedFactory("Failed to Delete");
+        return ServiceResult<BookDto?>.FailedFactory("Failed to Delete");
     }
 
-    public async Task<ServiceResult<Book?>> IssueBookToUser(uint bookId, uint userId)
+    public async Task<ServiceResult<BookDto?>> IssueBookToUser(uint bookId, uint userId)
     {
         using var transaction = BaseRepository.GetTransaction();
 
@@ -85,19 +87,19 @@ public class BookService : BaseService<Book>
             if (book is null)
             {
                 transaction.Rollback();
-                return ServiceResult<Book?>.FailedFactory("Book not found");
+                return ServiceResult<BookDto?>.FailedFactory("Book not found");
             }
 
             if (book.IssuedToUserId is not null)
             {
                 transaction.Rollback();
-                return ServiceResult<Book?>.FailedFactory("Book Already Issued");
+                return ServiceResult<BookDto?>.FailedFactory("Book Already Issued");
             }
 
             book.IssuedToUserId = userId;
             await BaseRepository.Update(bookId, book);
             transaction.Commit();
-            return ServiceResult<Book?>.SuccessfulFactory();
+            return ServiceResult<BookDto?>.SuccessfulFactory();
         }
         catch (Exception e)
         {
@@ -106,7 +108,7 @@ public class BookService : BaseService<Book>
         }
     }
 
-    public async Task<ServiceResult<Book?>> ReturnBookFromUser(uint bookId, uint userId)
+    public async Task<ServiceResult<BookDto?>> ReturnBookFromUser(uint bookId, uint userId)
     {
         using var transaction = BaseRepository.GetTransaction();
         try
@@ -116,19 +118,19 @@ public class BookService : BaseService<Book>
             if (book is null)
             {
                 transaction.Rollback();
-                return ServiceResult<Book?>.FailedFactory("Book not found");
+                return ServiceResult<BookDto?>.FailedFactory("Book not found");
             }
 
             if (book.IssuedToUserId != userId)
             {
                 transaction.Rollback();
-                return ServiceResult<Book?>.FailedFactory("Book not assigned to User");
+                return ServiceResult<BookDto?>.FailedFactory("Book not assigned to User");
             }
 
             book.IssuedToUserId = null;
             await BaseRepository.Update(bookId, book);
             transaction.Commit();
-            return ServiceResult<Book?>.SuccessfulFactory();
+            return ServiceResult<BookDto?>.SuccessfulFactory();
         }
         catch (Exception e)
         {
@@ -137,10 +139,10 @@ public class BookService : BaseService<Book>
         }
     }
 
-    async Task<ServiceResult<IEnumerable<Book>>> GetAllBooksIssuedToUser(uint userId)
+    async Task<ServiceResult<IEnumerable<BookDto>>> GetAllBooksIssuedToUser(uint userId)
     {
         Expression<Func<Book, bool>> queryPredicate = b => b.IssuedToUserId == userId;
-        return ServiceResult<IEnumerable<Book>>.SuccessfulFactory(
+        return ServiceResult<IEnumerable<BookDto>>.SuccessfulFactory(
             await BaseRepository.GetAllWithFilters(queryPredicate));
     }
 }

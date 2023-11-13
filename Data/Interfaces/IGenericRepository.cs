@@ -3,23 +3,27 @@ using Data.Dto;
 
 namespace Data.Interfaces
 {
-    internal interface IGenericRepository<TEntity, TKey>
+    internal interface IGenericRepository<TEntity, TDto, TKey>
     {
-        Task<TEntity> Add(TEntity entity);
-        Task<IEnumerable<TEntity>> AddMultiple(IEnumerable<TEntity> entities);
+        Task<TDto> Add(TDto data);
+        Task<IEnumerable<TDto>> AddMultiple(IEnumerable<TDto> entities);
         Task<bool> Delete(TKey id);
-        Task<TEntity> Update(TKey id, TEntity entity);
-        Task<IEnumerable<TEntity>> GetAll();
-        Task<IEnumerable<TEntity>> GetAllWithFilters(Expression<Func<TEntity, bool>> filter);
-        Task<TEntity?> GetById(TKey id);
 
-        Task<TEntity?> Find(Expression<Func<TEntity, bool>> filter);
+        Task<TDto> Update(TKey id, TDto entity);
 
-        Task<PaginationDto<TEntity>> GetFilteredWithPagination(Expression<Func<TEntity, bool>> filter,
+        // to be removed
+        Task<IEnumerable<TDto>> GetAll();
+
+        // to be removed
+        Task<IEnumerable<TDto>> GetAllWithFilters(Expression<Func<TEntity, bool>> filter);
+        Task<TDto?> GetById(TKey id);
+        Task<TDto?> Find(Expression<Func<TEntity, bool>> filter);
+
+        Task<PaginationDto<TDto>> GetFilteredWithPagination(Expression<Func<TEntity, bool>> filter,
             int pageSize = 10,
             int pageNumber = 1);
 
-        Task<PaginationDto<TEntity>> GetAllWithPagination(int pageSize = 10,
+        Task<PaginationDto<TDto>> GetAllWithPagination(int pageSize = 10,
             int pageNumber = 1);
     }
 }

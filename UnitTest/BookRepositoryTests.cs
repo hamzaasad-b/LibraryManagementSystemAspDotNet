@@ -1,6 +1,8 @@
 using System.Linq.Expressions;
+using Common.Dto.Book;
 using Data.Entities;
 using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace UnitTest;
 
@@ -16,7 +18,7 @@ public class BookRepositoryTests : RepositoryTests, IDisposable
     [Fact]
     public async Task Add_BookToDatabase()
     {
-        var book = new Book { Iban = "1234567890", Title = "Sample Book" };
+        var book = new BookDto { Iban = "1234567890", Title = "Sample Book" };
 
         var addedBook = await _repository.Add(book);
 
@@ -26,12 +28,30 @@ public class BookRepositoryTests : RepositoryTests, IDisposable
     }
 
     [Fact]
+    public async Task Update_BookInDatabase()
+    {
+        var book = new BookDto { Iban = "1234567890", Title = "Sample Book" };
+
+        var addedBook = await _repository.Add(book);
+
+        Assert.NotNull(addedBook);
+        Assert.Equal("1234567890", addedBook.Iban);
+        Assert.Equal("Sample Book", addedBook.Title);
+        if (addedBook.Id.HasValue is false) throw new Exception();
+        var updateDto = new BookDto() { Iban = "12312jkh123", Title = "Updated Title"};
+        var updatedBook = await _repository.Update(addedBook.Id.Value, updateDto);
+        Assert.Equal("12312jkh123", updatedBook.Iban);
+        Assert.Equal("Sample Book", updatedBook.Title);
+    }
+
+
+    [Fact]
     public async Task GetById_ReturnsBook()
     {
-        var book = new Book { Iban = "1234567890", Title = "Sample Book" };
-        await _repository.Add(book);
-
-        var retrievedBook = await _repository.GetById(book.Id);
+        var book = new BookDto { Iban = "1234567890", Title = "Sample Book" };
+        var entity = await _repository.Add(book);
+        if (entity.Id.HasValue is false) throw new Exception();
+        var retrievedBook = await _repository.GetById(entity.Id.Value);
 
         Assert.NotNull(retrievedBook);
         Assert.Equal("1234567890", retrievedBook.Iban);
@@ -49,10 +69,10 @@ public class BookRepositoryTests : RepositoryTests, IDisposable
     [Fact]
     public async Task Delete_BookFromDatabase()
     {
-        var book = new Book { Iban = "1234567890", Title = "Sample Book" };
+        var book = new BookDto { Iban = "1234567890", Title = "Sample Book" };
         await _repository.Add(book);
-
-        var result = await _repository.Delete(book.Id);
+        if (book.Id.HasValue is false) throw new Exception();
+        var result = await _repository.Delete(book.Id.Value);
 
         Assert.True(result);
         Assert.Empty(_dbContext.Set<Book>());
@@ -63,14 +83,14 @@ public class BookRepositoryTests : RepositoryTests, IDisposable
     public async Task AddMultiple_AddsMultipleBooks()
     {
         // Create a list of books to add
-        var booksToAdd = new List<Book>
+        var booksToAdd = new List<BookDto>
         {
-            new Book { Iban = "123", Title = "Book 1" },
-            new Book { Iban = "456", Title = "Book 2" },
-            new Book { Iban = "789", Title = "Book 3" },
-            new Book { Iban = "111", Title = "Book 4" },
-            new Book { Iban = "222", Title = "Book 5" },
-            new Book { Iban = "333", Title = "Book 6" },
+            new BookDto { Iban = "123", Title = "Book 1" },
+            new BookDto { Iban = "456", Title = "Book 2" },
+            new BookDto { Iban = "789", Title = "Book 3" },
+            new BookDto { Iban = "111", Title = "Book 4" },
+            new BookDto { Iban = "222", Title = "Book 5" },
+            new BookDto { Iban = "333", Title = "Book 6" },
         };
 
         // Add the books using AddMultiple
