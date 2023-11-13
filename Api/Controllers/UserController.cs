@@ -1,7 +1,6 @@
 using System.Net;
 using Api.Dto;
 using Api.Dto.Common;
-using Api.Helpers;
 using Common.Dto.User;
 using Domain.Services;
 using Microsoft.AspNetCore.Mvc;
