@@ -1,7 +1,6 @@
 using Api.Dto.Book;
 using Api.Dto.Common;
 using Common.Dto.Book;
-using Data.Entities;
 using Domain.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -78,19 +77,19 @@ namespace Api.Controllers
                 : BadRequest<BookDto?>();
         }
 
-        [HttpPut("IssueBookToUser")]
-        public async Task<ResponseDto> IssueBookToUser([FromBody] IssueBookToUserDto body)
+        [HttpPut("{bookId}/Issue/{userId}")]
+        public async Task<ResponseDto> Issue([FromRoute] uint bookId, [FromRoute] uint userId)
         {
-            var result = await _bookService.IssueBookToUser(bookId: body.BookId, userId: body.UserId);
+            var result = await _bookService.IssueBookToUser(bookId, userId);
             return result.Success
                 ? Success()
                 : Fail();
         }
 
-        [HttpPut("ReturnBookFromUser")]
-        public async Task<ResponseDto> ReturnBookFromUser([FromBody] IssueBookToUserDto body)
+        [HttpPut("{bookId}/Return/{userId}")]
+        public async Task<ResponseDto> ReturnBookFromUser([FromRoute] uint bookId, [FromRoute] uint userId)
         {
-            var result = await _bookService.ReturnBookFromUser(bookId: body.BookId, userId: body.UserId);
+            var result = await _bookService.ReturnBookFromUser(bookId, userId);
             return result.Success
                 ? Success()
                 : Fail();
