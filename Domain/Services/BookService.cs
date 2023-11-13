@@ -19,12 +19,12 @@ public class BookService : BaseService<Book, BookDto>
             await BaseRepository.GetAll());
     }
 
-    public async Task<ServiceResult<IEnumerable<BookDto>>> FindBooksByTerm(string? term = null)
+    public async Task<ServiceResult<PaginationDto<BookDto>>> FindBooksByTerm(int page, int size, string? term = null)
     {
         if (term is null)
         {
-            return ServiceResult<IEnumerable<BookDto>>.SuccessfulFactory(
-                await BaseRepository.GetAll());
+            return ServiceResult<PaginationDto<BookDto>>.SuccessfulFactory(
+                await BaseRepository.GetAllWithPagination(pageSize: size, pageNumber: page));
         }
 
         var parameter = Expression.Parameter(typeof(Book), "b");
@@ -40,8 +40,8 @@ public class BookService : BaseService<Book, BookDto>
         var filter = Expression.Lambda<Func<Book, bool>>(combinedCondition, parameter);
 
 
-        return ServiceResult<IEnumerable<BookDto>>.SuccessfulFactory(
-            await BaseRepository.GetAllWithFilters(filter));
+        return ServiceResult<PaginationDto<BookDto>>.SuccessfulFactory(
+            await BaseRepository.GetFilteredWithPagination(filter, pageSize: size, pageNumber: page));
     }
 
 
