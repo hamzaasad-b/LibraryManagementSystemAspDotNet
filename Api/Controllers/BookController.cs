@@ -1,8 +1,8 @@
 using Api.Dto.Book;
 using Api.Dto.Common;
+using Common.Dto.Book;
 using Data.Entities;
 using Domain.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
@@ -19,34 +19,30 @@ namespace Api.Controllers
         }
 
         // GET: api/Book
-        [Authorize]
+        // [Authorize]
         [HttpGet]
-        public async Task<ResponseDto<IEnumerable<Book>>> Get([FromQuery] string? term)
+        public async Task<ResponseDto<IEnumerable<BookDto>>> Get([FromQuery] string? term)
         {
             var result = await _bookService.FindBooksByTerm(term);
-            return !result.Success
-                ? Fail<IEnumerable<Book>>(default)
-                : Success(result.Data);
+            return Result(result);
         }
 
         // GET: api/Book/5
         [HttpGet("{id}", Name = "Get")]
-        public async Task<ResponseDto<Book?>> Get(uint id)
+        public async Task<ResponseDto<BookDto?>> Get(uint id)
         {
             var result = await _bookService.GetById(id);
-            if (!result.Success)
-            {
-                return Fail<Book?>(default);
-            }
-
             return Result(result, true);
         }
 
         // POST: api/Book
         [HttpPost]
-        public async Task<ResponseDto<Book>> Post([FromBody] CreateBookDto book)
+        [ProducesResponseType(201)]
+        [ProducesResponseType(400, Type = typeof(ResponseDto))]
+        public async Task<ResponseDto<BookDto>> Post([FromBody] CreateBookDto book)
         {
-            var newBook = new Book()
+            Console.WriteLine(ModelState.IsValid);
+            var newBook = new BookDto()
             {
                 Iban = book.Iban,
                 Title = book.Title
@@ -79,7 +75,7 @@ namespace Api.Controllers
             var result = await _bookService.DeleteTEntity(id);
             return result.Success
                 ? Success()
-                : BadRequest<Book?>();
+                : BadRequest<BookDto?>();
         }
 
         [HttpPut("IssueBookToUser")]

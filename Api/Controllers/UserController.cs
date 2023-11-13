@@ -1,17 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using Api.Dto;
 using Api.Dto.Common;
 using Api.Helpers;
-using Data.Entities;
+using Common.Dto.User;
 using Domain.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using NuGet.Protocol.Plugins;
 
 namespace Api.Controllers
 {
@@ -31,30 +24,30 @@ namespace Api.Controllers
 
         // GET: api/User
         [HttpGet]
-        public async Task<ResponseDto<IEnumerable<UserResponseDto>>> Get()
+        public async Task<ResponseDto<IEnumerable<UserDto>>> Get()
         {
             var result = await _userService.GetAllEntities();
             if (!result.Success)
             {
-                return Fail<IEnumerable<UserResponseDto>>(default);
+                return Fail<IEnumerable<UserDto>>(default);
             }
 
-            return Success(DtoHelpers.UserToUserResponseDto(result.Data!));
+            return Success(result.Data!);
         }
 
         // GET: api/User/5
         [HttpGet("{id}")]
-        public async Task<ResponseDto<UserResponseDto?>> Get(uint id)
+        public async Task<ResponseDto<UserDto?>> Get(uint id)
         {
             var result = await _userService.GetById(id);
             if (result.Success)
             {
                 return result.Data is not null
-                    ? Success<UserResponseDto?>(DtoHelpers.UserToUserResponseDto(result.Data))
-                    : NotFound<UserResponseDto?>();
+                    ? Success<UserDto?>(result.Data)
+                    : NotFound<UserDto?>();
             }
 
-            return Fail<UserResponseDto?>(default);
+            return Fail<UserDto?>(default);
         }
 
         // POST: api/User

@@ -3,6 +3,7 @@ using System.Text;
 using Api.Jwt;
 using Api.Middleware;
 using Api.Validators;
+using Data;
 using Data.Context;
 using Data.Entities;
 using Data.Repositories;
@@ -33,10 +34,9 @@ builder.Services.AddIdentity<User, IdentityRole<uint>>()
     .AddDefaultTokenProviders();
 
 builder.Services.AddScoped<JwtManager>();
-
 // Register the UserManager
 builder.Services.AddScoped<UserManager<User>>();
-
+builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 builder.Services.AddScoped<BookService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<AuthenticationService>();

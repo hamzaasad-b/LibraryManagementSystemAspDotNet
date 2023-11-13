@@ -1,5 +1,10 @@
 using System.Runtime.CompilerServices;
+using AutoMapper;
+using Common.Dto.Book;
+using Common.Dto.User;
+using Data;
 using Data.Context;
+using Data.Entities;
 using Data.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,8 +22,9 @@ public class RepositoryTests
                 connectionString
             ).Options;
 
+        var mapper = new Mapper(new MapperConfiguration(cfg => { cfg.AddProfile<AutoMapperProfile>(); }));
         _dbContext = new LmsDbContext(options);
-        _repository = new BookRepository(_dbContext);
+        _repository = new BookRepository(_dbContext, mapper);
         _dbContext.Database.EnsureDeleted();
         _dbContext.Database.EnsureCreated();
     }

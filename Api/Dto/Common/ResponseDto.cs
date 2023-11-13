@@ -14,7 +14,7 @@ public class ResponseDto
 
     public bool Success { get; set; }
     public string? Message { get; set; }
-    public List<string>? Errors { get; set; } = new List<string>();
+    public List<string>? Errors { get; set; }
     public string? TraceId { get; set; }
 
     public static ResponseDto Successful()
@@ -22,7 +22,7 @@ public class ResponseDto
         return new ResponseDto() { Success = true };
     }
 
-    public static ResponseDto Failure(string message, IEnumerable<string>? errors)
+    public static ResponseDto Failure(string message = "Failed", IEnumerable<string>? errors = null)
     {
         var result = new ResponseDto { Success = false, Message = message };
         if (errors != null)
