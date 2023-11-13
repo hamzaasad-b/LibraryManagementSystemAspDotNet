@@ -1,6 +1,7 @@
 using Api.Dto.Book;
 using Api.Dto.Common;
 using Common.Dto.Book;
+using Data.Dto;
 using Domain.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,9 +21,10 @@ namespace Api.Controllers
         // GET: api/Book
         // [Authorize]
         [HttpGet]
-        public async Task<ResponseDto<IEnumerable<BookDto>>> Get([FromQuery] string? term)
+        public async Task<ResponseDto<PaginationDto<BookDto>>> Get([FromQuery] string? term, [FromQuery] int page = 0,
+            [FromQuery] int size = 50)
         {
-            var result = await _bookService.FindBooksByTerm(term);
+            var result = await _bookService.FindBooksByTerm(page, size, term);
             return Result(result);
         }
 

@@ -150,7 +150,8 @@ public class GenericRepository<TEntity, TDto> : IGenericRepository<TEntity, TDto
             ? null
             : Mapper.Map<TDto>(entity);
     }
-
+    
+    // TODO: Remove
     /// <summary>
     /// Find all records with given conditions from database
     /// </summary>
@@ -160,7 +161,9 @@ public class GenericRepository<TEntity, TDto> : IGenericRepository<TEntity, TDto
     {
         return Mapper.Map<List<TDto>>(await Context.Set<TEntity>().ToListAsync());
     }
-
+    
+    
+    // TODO: Remove
     /// <summary>
     /// Find all records with given conditions from database
     /// </summary>
